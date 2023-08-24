@@ -11,7 +11,7 @@ resource "google_compute_instance" "dev-box" {
 
   boot_disk {
     initialize_params {
-      image = "projects/ubuntu-os-cloud/global/images/ubuntu-2204-jammy-v20220924"
+      image = "projects/sap-se-gcp-gardenlinux/global/images/gardenlinux-gcp-gardener-prod-amd64-934-9-54c63e5"
 
       type  = "pd-ssd"
       size  = 100
@@ -27,7 +27,8 @@ resource "google_compute_instance" "dev-box" {
   }
 
   metadata = {
-    ssh-keys = "${var.user}:${data.local_file.ssh_key.content}"
+    enable-oslogin : "TRUE"
+    block-project-ssh-keys = true
   }
 
   metadata_startup_script = templatefile("${path.module}/startup_script.sh.tpl", {
@@ -35,7 +36,7 @@ resource "google_compute_instance" "dev-box" {
   })
 
   # required for some projects by organization policy
-  shielded_instance_config {
-    enable_secure_boot = true
-  }
+  #shielded_instance_config {
+  #  enable_secure_boot = true
+  #}
 }

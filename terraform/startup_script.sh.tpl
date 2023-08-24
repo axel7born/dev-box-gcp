@@ -30,9 +30,10 @@ exec \$SHELL
 EOF
 chmod +x start-gardener-dev.sh
 
+sudo mount -o remount,rw /dev/sda2 /usr
 sudo -u ${user} mkdir -p go/src/github.com/gardener/gardener
 apt update
-apt install -y make docker.io jq
+apt install -y make docker.io jq git
 # allow user to execute docker without sudo
 gpasswd -a ${user} docker
 
@@ -43,8 +44,8 @@ go_download_sha256='4eaea32f59cde4dc635fbc42161031d13e1c780b87097f4b4234cfce671f
 go_download_file=/tmp/go.tgz
 wget -O $go_download_file "$go_download_url" --progress=dot:giga
 echo "$go_download_sha256 $go_download_file" | sha256sum -c -
-tar -C /usr/local -xzf $go_download_file
-ln -s /usr/local/go/bin/go /usr/local/bin/go
+tar -C /var/local -xzf $go_download_file
+ln -s /var/local/go/bin/go /usr/local/bin/go
 rm $go_download_file
 
 # Install a recent version of delve

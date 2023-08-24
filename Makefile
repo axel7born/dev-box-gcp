@@ -3,9 +3,12 @@ include tools.mk
 REPO_ROOT := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 TERRAFORM_DIR := terraform
 
+ifndef TF_VAR_user
+$(error TF_VAR_user has to be set to a values like john_doe_example_org)
+endif
+
 # GCP resource names don't allow uppercase characters
 box-%: export TF_VAR_name ?= $(shell echo ${USER} | tr '[:upper:]' '[:lower:]')-gardener-dev
-box-%: export TF_VAR_user ?= ${USER}
 box-%: export TF_VAR_serviceaccount_file ?= $(REPO_ROOT)/secrets/gardener-dev.json
 
 # restrict incoming traffic to dev box to the outgoing IPv4 address of the local device by default
@@ -21,8 +24,10 @@ box-up: $(TERRAFORM)
 	@# we need an additional refresh, otherwise the instance_ip_addr output variable might be outdated
 	$(TERRAFORM) -chdir=$(TERRAFORM_DIR) refresh
 	@echo "You can now connect to your dev box using:"
-	@echo "ssh -tl $$TF_VAR_user $$($(TERRAFORM) -chdir=$(TERRAFORM_DIR) output instance_ip_addr | jq -r) ./start-gardener-dev.sh"
-
+#	@echo "ssh -tl $$TF_VAR_user $$($(TERRAFORM) -chdir=$(TERRAFORM_DIR) output instance_ip_addr | jq -r) ./start-gardener-dev.sh"
+# TODO. get variables from terraform here 
+	@echo "gcloud compute ssh --zone \"europe-west3-c\" \"$(TF_VAR_name)\" --project \"$(TF_VAR_project)\""
+	@echo "and run \"sudo google_metadata_script_runner startup\""
 .PHONY: box-down
 box-down: box-clean-known-hosts $(TERRAFORM)
 	$(TERRAFORM) -chdir=$(TERRAFORM_DIR) apply -var desired_status=TERMINATED
